@@ -15,6 +15,7 @@ public sealed class GameHost
     public string DataPath { get; private set; } = string.Empty;
     public string SavesPath { get; private set; } = string.Empty;
     public string LogsPath { get; private set; } = string.Empty;
+    public string ScenarioDataPath { get; private set; } = string.Empty;
 
     public void Initialize()
     {
@@ -23,11 +24,13 @@ public sealed class GameHost
         DataPath = Path.Combine(RootPath, "data");
         SavesPath = Path.Combine(RootPath, "saves");
         LogsPath = Path.Combine(RootPath, "logs");
+        ScenarioDataPath = Path.Combine(DataPath, "scenarios");
 
         Directory.CreateDirectory(AssetsPath);
         Directory.CreateDirectory(DataPath);
         Directory.CreateDirectory(SavesPath);
         Directory.CreateDirectory(LogsPath);
+        Directory.CreateDirectory(ScenarioDataPath);
 
         Raylib.SetConfigFlags(ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint);
         Raylib.InitWindow(WindowWidth, WindowHeight, "SignalDesk - Step 2 Runtime Bootstrap");
