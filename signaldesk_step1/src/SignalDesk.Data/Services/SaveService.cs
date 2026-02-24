@@ -1,13 +1,13 @@
 using System.Text.Json;
-using SignalDesk.Core.Models;
+using SignalDesk.Data.Models;
 
 namespace SignalDesk.Data.Services;
 
 public interface ISaveService
 {
     string GetSlotPath(int slot);
-    void SaveSlot(GameState state, int slot);
-    GameState LoadSlot(int slot);
+    void SaveSlot(SaveSlotDocument save, int slot);
+    SaveSlotDocument LoadSlot(int slot);
     bool SlotExists(int slot);
 }
 
@@ -22,24 +22,33 @@ public sealed class SaveService : ISaveService
         Directory.CreateDirectory(_saveDirectory);
     }
 
-    public string GetSlotPath(int slot) => Path.Combine(_saveDirectory, $"slot{slot}.json");
+    public string GetSlotPath(int slot) => Path.Combine(_saveDirectory, $"slot{slot}.sav.json");
 
-    public void SaveSlot(GameState state, int slot)
+    public void SaveSlot(SaveSlotDocument save, int slot)
     {
         var path = GetSlotPath(slot);
         var tmp = path + ".tmp";
-        var json = JsonSerializer.Serialize(state, JsonOptions);
+        var json = JsonSerializer.Serialize(save, JsonOptions);
         File.WriteAllText(tmp, json);
-        if (File.Exists(path)) File.Delete(path);
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+
         File.Move(tmp, path);
     }
 
-    public GameState LoadSlot(int slot)
+    public SaveSlotDocument LoadSlot(int slot)
     {
         var path = GetSlotPath(slot);
-        if (!File.Exists(path)) throw new FileNotFoundException("Save slot not found", path);
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException("Save slot not found", path);
+        }
+
         var json = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<GameState>(json) ?? throw new InvalidDataException("Invalid save JSON");
+        return JsonSerializer.Deserialize<SaveSlotDocument>(json)
+               ?? throw new InvalidDataException("Invalid save JSON");
     }
 
     public bool SlotExists(int slot) => File.Exists(GetSlotPath(slot));
