@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signal Desk // Narrative Conflict Workbench v2</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar window chrome">
+      <div class="window-titlebar">
+        <div class="traffic-lights" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div>
+          <h1>Signal Desk</h1>
+          <p class="subtitle">Orwell-like narrative console · Disco-inspired skill perception · v2</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button id="btnSave" class="btn subtle">Save</button>
+        <button id="btnLoad" class="btn subtle">Load</button>
+        <button id="btnClearSave" class="btn subtle">Clear Save</button>
+        <button id="btnExportJson" class="btn">Export JSON</button>
+        <button id="btnShowcase" class="btn">Autoplay</button>
+        <button id="btnReset" class="btn danger">Reset</button>
+      </div>
+    </header>
+
+    <div class="desktop-layout">
+      <aside class="dock window chrome">
+        <div class="window-titlebar small">
+          <span>Windows</span>
+          <span class="muted">Ctrl room</span>
+        </div>
+        <nav class="dock-nav" id="dockNav">
+          <button class="dock-btn active" data-tab="messages">Messages</button>
+          <button class="dock-btn" data-tab="files">Files</button>
+          <button class="dock-btn" data-tab="stats">Stats</button>
+          <button class="dock-btn" data-tab="context">Context</button>
+          <button class="dock-btn" data-tab="debug">Debug</button>
+        </nav>
+        <div class="dock-meta">
+          <div class="meta-card">
+            <div class="meta-label">Scenario</div>
+            <div id="metaScenario" class="meta-value">—</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Status</div>
+            <div id="metaStatus" class="meta-value">Setup</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Autosave</div>
+            <div id="metaAutosave" class="meta-value">Idle</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section class="tab-page active" data-tab-page="messages">
+          <div class="tab-grid tab-grid-messages">
+            <section class="window chrome panel feed-window">
+              <div class="window-titlebar"><span>Incoming Messages</span><span id="feedCount" class="muted">0</span></div>
+              <div class="window-body">
+                <div id="incomingFeed" class="feed"></div>
+              </div>
+            </section>
+
+            <section class="window chrome panel conflict-window">
+              <div class="window-titlebar">
+                <span>Conflict Console</span>
+                <div class="tiny-actions">
+                  <button id="btnTogglePerception" class="btn tiny subtle">Toggle Voices</button>
+                  <button id="btnHacker" class="btn tiny warning">Hacker</button>
+                </div>
+              </div>
+              <div class="window-body conflict-body">
+                <div id="scenarioHeader" class="scenario-header"></div>
+                <div id="timeline" class="timeline"></div>
+                <div id="choiceArea" class="choice-area"></div>
+              </div>
+            </section>
+
+            <section class="window chrome panel side-window">
+              <div class="window-titlebar"><span>Live Meters</span><span class="muted">compact</span></div>
+              <div class="window-body">
+                <div id="meterStrip" class="meter-strip"></div>
+                <div class="divider"></div>
+                <div id="quickRelations" class="quick-relations"></div>
+                <div class="divider"></div>
+                <div id="activeFlags" class="active-flags"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-page" data-tab-page="files">
+          <div class="tab-grid tab-grid-files">
+            <section class="window chrome panel explorer-window">
+              <div class="window-titlebar"><span>File Explorer</span><span class="muted">session://</span></div>
+              <div class="window-body explorer-body">
+                <div class="explorer-sidebar" id="fileTree"></div>
+                <div class="explorer-content">
+                  <div class="file-toolbar">
+                    <span id="activeFilePath" class="mono muted">session://transcript.log</span>
+                    <button id="btnCopyFile" class="btn tiny subtle">Copy</button>
+                  </div>
+                  <pre id="fileViewer" class="file-viewer"></pre>
+                </div>
+              </div>
+            </section>
+            <section class="window chrome panel logs-window">
+              <div class="window-titlebar"><span>Engine Logs</span><span id="logCount" class="muted">0</span></div>
+              <div class="window-body">
+                <div id="logsContent" class="log-list"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-page" data-tab-page="stats">
+          <div class="tab-grid tab-grid-stats">
+            <section class="window chrome panel stats-window">
+              <div class="window-titlebar">
+                <span>Operator Sheet</span>
+                <div class="tiny-actions">
+                  <button id="btnToggleAllStats" class="btn tiny subtle">Collapse/Expand All</button>
+                </div>
+              </div>
+              <div class="window-body stats-body">
+                <div class="accordion" id="statsAccordion">
+                  <section class="accordion-item" data-acc="vitals">
+                    <button class="accordion-head">Vitals & Progress</button>
+                    <div class="accordion-content" id="statsContent"></div>
+                  </section>
+                  <section class="accordion-item" data-acc="skills">
+                    <button class="accordion-head">Skills</button>
+                    <div class="accordion-content" id="skillsContent"></div>
+                  </section>
+                  <section class="accordion-item" data-acc="inventory">
+                    <button class="accordion-head">Inventory</button>
+                    <div class="accordion-content" id="inventoryContent"></div>
+                  </section>
+                  <section class="accordion-item" data-acc="relations">
+                    <button class="accordion-head">Relationships</button>
+                    <div class="accordion-content" id="relationsContent"></div>
+                  </section>
+                </div>
+              </div>
+            </section>
+            <section class="window chrome panel perception-window">
+              <div class="window-titlebar"><span>Perception Profile</span><span class="muted">signature filtered</span></div>
+              <div class="window-body">
+                <div id="perceptionSummary"></div>
+                <div class="divider"></div>
+                <div id="signatureSummary"></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-page" data-tab-page="context">
+          <div class="tab-grid tab-grid-context">
+            <section class="window chrome panel memory-window">
+              <div class="window-titlebar"><span>Memory Flags</span><span class="muted">session memory</span></div>
+              <div class="window-body"><div id="memoryContent"></div></div>
+            </section>
+            <section class="window chrome panel world-window">
+              <div class="window-titlebar"><span>Worldbuilding Context</span><span class="muted">scenario state</span></div>
+              <div class="window-body"><div id="worldContent"></div></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-page" data-tab-page="debug">
+          <div class="tab-grid tab-grid-debug">
+            <section class="window chrome panel graph-window">
+              <div class="window-titlebar">
+                <span>Branch Graph Debug View</span>
+                <div class="tiny-actions">
+                  <button id="btnGraphLayout" class="btn tiny subtle">Reflow</button>
+                  <button id="btnExportGraph" class="btn tiny subtle">Export Graph JSON</button>
+                </div>
+              </div>
+              <div class="window-body">
+                <div id="graphLegend" class="graph-legend"></div>
+                <div id="branchGraph" class="branch-graph"></div>
+              </div>
+            </section>
+            <section class="window chrome panel debug-window">
+              <div class="window-titlebar"><span>Debug State</span><span class="muted">live snapshot</span></div>
+              <div class="window-body">
+                <pre id="debugStateView" class="file-viewer"></pre>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="setupOverlay" class="overlay visible">
+    <div class="modal modal-setup window chrome">
+      <div class="window-titlebar"><span>New Session Setup</span><span class="muted">Operator Configuration</span></div>
+      <div class="window-body modal-body">
+        <div class="setup-steps">
+          <section class="wizard-card">
+            <h2>1) Scenario</h2>
+            <div id="scenarioPicker" class="scenario-picker"></div>
+            <div id="scenarioPreview" class="preview-box"></div>
+          </section>
+
+          <section class="wizard-card">
+            <h2>2) Archetype</h2>
+            <div id="archetypeCards" class="card-grid"></div>
+            <div id="archetypePreview" class="preview-box"></div>
+          </section>
+
+          <section class="wizard-card">
+            <div class="row-between">
+              <h2>3) Skills</h2>
+              <span id="pointsLeftBadge" class="badge">0 left</span>
+            </div>
+            <p class="muted small">Spend points, cap 6 during setup. Signature skill changes how messages are framed.</p>
+            <div id="skillAllocation" class="alloc-list"></div>
+          </section>
+
+          <section class="wizard-card">
+            <h2>4) Signature Skill</h2>
+            <div id="signatureChoices" class="signature-grid"></div>
+          </section>
+        </div>
+
+        <div class="setup-footer">
+          <div class="left-tools">
+            <button id="btnQuickBalanced" class="btn subtle">Quick Balanced</button>
+            <button id="btnLoadIntoSetup" class="btn subtle">Load Save into Setup</button>
+          </div>
+          <div class="right-tools">
+            <button id="btnStart" class="btn">Start Scenario</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="hackerOverlay" class="overlay">
+    <div class="modal modal-hacker window chrome">
+      <div class="window-titlebar">
+        <span>Hacker Mode</span>
+        <div class="tiny-actions">
+          <button id="btnCloseHacker" class="btn tiny subtle">Close</button>
+        </div>
+      </div>
+      <div class="window-body modal-body">
+        <p class="muted">Live state editor. Yes, you can break the simulation on purpose. Very on-brand.</p>
+        <div class="hacker-tabs" id="hackerTabBtns">
+          <button class="btn tiny subtle active" data-hacker-tab="core">Core</button>
+          <button class="btn tiny subtle" data-hacker-tab="skills">Skills</button>
+          <button class="btn tiny subtle" data-hacker-tab="json">JSON</button>
+        </div>
+        <div id="hackerCore" class="hacker-pane active"></div>
+        <div id="hackerSkills" class="hacker-pane"></div>
+        <div id="hackerJson" class="hacker-pane">
+          <label class="field-label">memory JSON</label>
+          <textarea id="hackMemoryJson" class="code-input" rows="8"></textarea>
+          <label class="field-label">inventory JSON</label>
+          <textarea id="hackInventoryJson" class="code-input" rows="8"></textarea>
+          <label class="field-label">relations JSON</label>
+          <textarea id="hackRelationsJson" class="code-input" rows="8"></textarea>
+        </div>
+        <div class="setup-footer">
+          <div></div>
+          <div class="right-tools">
+            <button id="btnApplyHacker" class="btn warning">Apply Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <template id="choiceButtonTemplate">
+    <button class="choice-btn"></button>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
