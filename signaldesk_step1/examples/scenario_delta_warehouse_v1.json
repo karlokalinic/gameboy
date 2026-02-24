@@ -1,0 +1,312 @@
+{
+  "id": "delta_warehouse_sweep",
+  "version": 1,
+  "title": "Delta Warehouse Sweep",
+  "district": "dock_delta",
+  "contacts": [
+    "handler_iris",
+    "mila_runner"
+  ],
+  "startNode": "intro_msg",
+  "nodes": [
+    {
+      "id": "intro_msg",
+      "type": "message",
+      "speaker": "handler_iris",
+      "channel": "inbox",
+      "text": "Camera feed at Delta Warehouse cut for exactly ninety-three seconds. We need a clean explanation before internal audit gets there.",
+      "overlays": [
+        {
+          "channel": "analytical",
+          "minSkill": 3,
+          "text": "Ninety-three seconds is too neat. Someone timed a blind spot, not a random outage."
+        },
+        {
+          "channel": "threat",
+          "minSkill": 2,
+          "text": "If this is a probe, someone wants to test response latency before trying something larger."
+        }
+      ],
+      "choices": [
+        {
+          "id": "ask_logs",
+          "label": "Pull maintenance logs before contacting anyone.",
+          "effects": [
+            {
+              "op": "append_log",
+              "args": {
+                "kind": "evidence",
+                "text": "Maintenance log: camera loop patch deployed 03:12 by unknown badge."
+              }
+            },
+            {
+              "op": "set_flag",
+              "key": "found_loop_patch",
+              "value": true
+            }
+          ],
+          "next": "contact_mila"
+        },
+        {
+          "id": "call_runner_now",
+          "label": "Contact Mila immediately and pressure her for a story.",
+          "check": {
+            "skill": "authority",
+            "difficulty": 10,
+            "on": {
+              "fail": "mila_bristles",
+              "success": "mila_talks"
+            },
+            "modifiers": [
+              {
+                "type": "player_clothing_tag",
+                "tag": "intimidating",
+                "bonus": 1,
+                "reason": "Imposing appearance"
+              },
+              {
+                "type": "weather_tag",
+                "tag": "rain",
+                "bonus": -1,
+                "reason": "Signal noise during rain"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "contact_mila",
+      "type": "message",
+      "speaker": "mila_runner",
+      "channel": "inbox",
+      "text": "You called at a bad hour. If this is about the warehouse blackout, I already told security I saw nothing.",
+      "choices": [
+        {
+          "id": "confront_with_log",
+          "label": "Mention the loop patch in the maintenance logs.",
+          "conditions": [
+            {
+              "op": "flag_equals",
+              "key": "found_loop_patch",
+              "value": true
+            }
+          ],
+          "check": {
+            "skill": "suggestion",
+            "difficulty": 9,
+            "on": {
+              "partial": "mila_partial",
+              "success": "mila_talks"
+            },
+            "modifiers": [
+              {
+                "type": "weather_tag",
+                "tag": "rain",
+                "bonus": -1,
+                "reason": "Harder to read tone in storm conditions"
+              }
+            ]
+          }
+        },
+        {
+          "id": "back_off",
+          "label": "Back off and send a neutral follow-up request.",
+          "effects": [
+            {
+              "op": "delta_relationship",
+              "key": "mila_runner",
+              "value": 4
+            }
+          ],
+          "next": "audit_window"
+        }
+      ]
+    },
+    {
+      "id": "mila_bristles",
+      "type": "event",
+      "text": "Mila hangs up. Ten seconds later, a courier chat pings: 'Someone is asking about camera loops. Be careful.' Heat rises.",
+      "effects": [
+        {
+          "op": "delta_relationship",
+          "key": "mila_runner",
+          "value": -8
+        },
+        {
+          "op": "add_heat",
+          "value": 12
+        },
+        {
+          "op": "set_flag",
+          "key": "courier_network_alerted",
+          "value": true
+        }
+      ],
+      "next": "audit_window"
+    },
+    {
+      "id": "mila_partial",
+      "type": "event",
+      "text": "Mila doesn't give the name, but confirms someone inside security sold timing data to an outside broker.",
+      "effects": [
+        {
+          "op": "set_flag",
+          "key": "security_leak_confirmed",
+          "value": true
+        },
+        {
+          "op": "append_log",
+          "args": {
+            "kind": "lead",
+            "text": "Timing data sale likely involved internal security desk."
+          }
+        }
+      ],
+      "next": "audit_window"
+    },
+    {
+      "id": "mila_talks",
+      "type": "event",
+      "text": "Mila gives a badge fragment and route code. It's enough to identify a compromised supervisor and stage a quiet interception.",
+      "effects": [
+        {
+          "op": "set_flag",
+          "key": "got_badge_fragment",
+          "value": true
+        },
+        {
+          "op": "delta_relationship",
+          "key": "mila_runner",
+          "value": 7
+        },
+        {
+          "op": "append_log",
+          "args": {
+            "kind": "evidence",
+            "text": "Badge fragment: S-17 / route code NORTH-RAIL-4."
+          }
+        }
+      ],
+      "next": "audit_window"
+    },
+    {
+      "id": "audit_window",
+      "type": "message",
+      "speaker": "system",
+      "channel": "system",
+      "text": "Internal audit convoy arrives in 18 minutes. Choose response posture.",
+      "choices": [
+        {
+          "id": "cover_up",
+          "label": "Fabricate a hardware fault report and suppress the lead.",
+          "effects": [
+            {
+              "op": "set_flag",
+              "key": "chose_coverup",
+              "value": true
+            },
+            {
+              "op": "delta_stat",
+              "key": "sanity",
+              "value": -4
+            },
+            {
+              "op": "delta_relationship",
+              "key": "handler_iris",
+              "value": 3
+            }
+          ],
+          "next": "ending_coverup"
+        },
+        {
+          "id": "quiet_intercept",
+          "label": "Use the lead to run a quiet interception before audit sees the leak.",
+          "conditions": [
+            {
+              "op": "flag_equals",
+              "key": "got_badge_fragment",
+              "value": true
+            }
+          ],
+          "check": {
+            "skill": "reaction_speed",
+            "difficulty": 11,
+            "on": {
+              "partial": "ending_messy_win",
+              "success": "ending_clean_win"
+            }
+          }
+        },
+        {
+          "id": "report_truth",
+          "label": "Report the breach honestly and trigger internal fallout.",
+          "effects": [
+            {
+              "op": "set_flag",
+              "key": "truth_reported",
+              "value": true
+            },
+            {
+              "op": "delta_stat",
+              "key": "morale",
+              "value": 2
+            },
+            {
+              "op": "delta_relationship",
+              "key": "handler_iris",
+              "value": -6
+            },
+            {
+              "op": "unlock_thought",
+              "key": "procedural_purity"
+            }
+          ],
+          "next": "ending_truth"
+        }
+      ]
+    },
+    {
+      "id": "ending_coverup",
+      "type": "ending",
+      "endingId": "coverup_stability"
+    },
+    {
+      "id": "ending_clean_win",
+      "type": "ending",
+      "endingId": "silent_intercept"
+    },
+    {
+      "id": "ending_messy_win",
+      "type": "ending",
+      "endingId": "intercept_exposed"
+    },
+    {
+      "id": "ending_truth",
+      "type": "ending",
+      "endingId": "audit_purge"
+    }
+  ],
+  "endings": [
+    {
+      "id": "coverup_stability",
+      "label": "Stability Through Rot",
+      "summary": "Audit signs off. Leak survives. You buy quiet with future damage."
+    },
+    {
+      "id": "silent_intercept",
+      "label": "Silent Intercept",
+      "summary": "Leak is contained before audit notices. Someone powerful now knows you are competent."
+    },
+    {
+      "id": "intercept_exposed",
+      "label": "Messy Win",
+      "summary": "You stop the transfer, but heat spikes and networks remember your methods."
+    },
+    {
+      "id": "audit_purge",
+      "label": "The Honest Cut",
+      "summary": "Truth triggers internal purge. You keep conscience, lose protection."
+    }
+  ]
+}

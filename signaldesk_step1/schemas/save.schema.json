@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "signaldesk/save.schema.json",
+  "title": "SignalDesk Save",
+  "type": "object",
+  "required": ["version", "slot", "timestamp", "campaign", "player", "runtime"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "slot": { "type": "integer", "minimum": 1, "maximum": 5 },
+    "timestamp": { "type": "string" },
+    "campaign": {
+      "type": "object",
+      "required": ["scenarioId", "currentNodeId"],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "currentNodeId": { "type": "string" },
+        "districtId": { "type": "string" },
+        "activeThreads": { "type": "array", "items": { "type": "string" } },
+        "ended": { "type": "boolean" },
+        "endingTags": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "player": {
+      "type": "object",
+      "required": ["name", "archetype", "stats", "skills"],
+      "properties": {
+        "name": { "type": "string" },
+        "archetype": { "type": "string" },
+        "signatureSkill": { "type": "string" },
+        "stats": { "type": "object", "additionalProperties": { "type": "number" } },
+        "skills": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "inventory": { "type": "array", "items": { "type": "string" } },
+        "flags": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+    "relationships": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "number" },
+          "trust": { "type": "number" },
+          "fear": { "type": "number" },
+          "respect": { "type": "number" },
+          "flags": { "type": "object", "additionalProperties": true }
+        },
+        "additionalProperties": false
+      }
+    },
+    "memory": {
+      "type": "object",
+      "properties": {
+        "caseFlags": { "type": "object", "additionalProperties": true },
+        "emotionalFlags": { "type": "object", "additionalProperties": true },
+        "socialMemory": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+    "thoughtCabinet": {
+      "type": "object",
+      "properties": {
+        "capacity": { "type": "integer" },
+        "activeResearch": { "type": ["string", "null"] },
+        "researchProgress": { "type": "integer" },
+        "thoughts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "state"],
+            "properties": {
+              "id": { "type": "string" },
+              "state": { "enum": ["discovered", "researching", "internalized"] },
+              "slotIndex": { "type": ["integer", "null"] }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "world": {
+      "type": "object",
+      "properties": {
+        "time": { "type": "string" },
+        "districts": { "type": "object", "additionalProperties": true },
+        "factions": { "type": "object", "additionalProperties": true },
+        "globalFlags": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "transcript": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "rollHistory": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "rngSeed": { "type": ["integer", "string"] },
+        "uiLayout": { "type": "object", "additionalProperties": true },
+        "debug": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

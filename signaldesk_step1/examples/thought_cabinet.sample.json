@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "capacityDefault": 3,
+  "researchTicksDefault": 3,
+  "thoughts": [
+    {
+      "id": "procedural_purity",
+      "title": "Procedural Purity",
+      "description": "If the system rots, document the rot. Never improvise a lie unless the lie itself is evidence.",
+      "discoverTriggers": [
+        { "op": "flag_equals", "key": "truth_reported", "value": true }
+      ],
+      "researchTicks": 2,
+      "whileResearching": [
+        { "op": "delta_stat", "key": "stress_resistance", "value": -1 }
+      ],
+      "internalizedEffects": [
+        { "op": "check_mod", "args": { "whenSkill": "logic", "value": 1 } },
+        { "op": "check_mod", "args": { "tag": "lie", "value": -1 } }
+      ],
+      "perceptionOverlays": ["analytical"],
+      "tags": ["ethics", "bureaucracy"]
+    },
+    {
+      "id": "street_static",
+      "title": "Street Static",
+      "description": "Noise is information before it becomes rumor. The city coughs before it screams.",
+      "researchTicks": 4,
+      "internalizedEffects": [
+        { "op": "check_mod", "args": { "whenSkill": "shivers", "value": 2 } },
+        { "op": "delta_stat", "key": "sanity_max", "value": -2 }
+      ],
+      "perceptionOverlays": ["urban-ambient", "threat"],
+      "tags": ["city", "signal", "risk"]
+    }
+  ]
+}
