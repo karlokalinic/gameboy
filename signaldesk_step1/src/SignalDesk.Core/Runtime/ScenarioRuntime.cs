@@ -23,6 +23,16 @@ public sealed class ScenarioRuntime : IScenarioRuntime
 
         AddTranscript(state, "system", $"Scenario loaded: {scenario.Title} ({scenario.Id})");
         AddNodeTranscript(state, scenario.StartNode);
+        var startNode = scenario.Nodes.First(n => n.Id == scenario.StartNode);
+        if (!string.IsNullOrWhiteSpace(startNode.Text))
+        {
+            state.Session.Transcript.Add(new TranscriptEntry
+            {
+                Source = startNode.Speaker ?? "system",
+                Channel = startNode.Channel ?? "inbox",
+                Text = startNode.Text
+            });
+        }
     }
 
     public RuntimeView GetView(GameState state)
@@ -32,6 +42,7 @@ public sealed class ScenarioRuntime : IScenarioRuntime
             return RuntimeView.Empty;
         }
 
+        if (_scenario is null) return RuntimeView.Empty;
         var node = _scenario.Nodes.First(n => n.Id == state.Session.CurrentNodeId);
         return RuntimeView.FromNode(node);
     }
@@ -99,6 +110,29 @@ public sealed class ScenarioRuntime : IScenarioRuntime
             Channel = "system",
             Text = text
         });
+        // Step 2 intentionally simple: no checks/conditions/effects yet.
+        // Step 3+: implement full condition/effect/check pipeline.
+        if (_scenario is null) return RuntimeResolutionResult.Error("Scenario not started");
+        var node = _scenario.Nodes.First(n => n.Id == state.Session.CurrentNodeId);
+        var choice = node.Choices?.FirstOrDefault(c => c.Id == choiceId);
+        if (choice is null) return RuntimeResolutionResult.Error($"Choice '{choiceId}' not found");
+
+        if (string.IsNullOrWhiteSpace(choice.Next))
+            return RuntimeResolutionResult.Error("Choice has no 'next' target in Step 2 runtime");
+
+        state.Session.CurrentNodeId = choice.Next!;
+        var next = _scenario.Nodes.First(n => n.Id == state.Session.CurrentNodeId);
+        if (!string.IsNullOrWhiteSpace(next.Text))
+        {
+            state.Session.Transcript.Add(new TranscriptEntry
+            {
+                Source = next.Speaker ?? "system",
+                Channel = next.Channel ?? "inbox",
+                Text = next.Text
+            });
+        }
+
+        return RuntimeResolutionResult.Success();
     }
 }
 
@@ -118,6 +152,7 @@ public sealed class RuntimeView
             Text = node.Text,
             Choices = (node.Choices ?? new List<ScenarioChoice>())
                 .Select(c => new RuntimeChoiceView(c.Id, c.Check is null ? c.Label : $"{c.Label} (CHECK TODO)"))
+                .Select(c => new RuntimeChoiceView(c.Id, c.Label))
                 .ToList()
         };
 }

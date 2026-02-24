@@ -22,5 +22,14 @@ public sealed class MessagesPanel : WindowPanel
             Raylib.DrawText(TranscriptLines[i], (int)contentBounds.X + 8, y, 18, Color.LightGray);
             y += 22;
         }
+    public List<string> TranscriptLines { get; } = new();
+    public List<(string Id, string Label)> Choices { get; } = new();
+
+    public MessagesPanel() : base("messages", "Messages") {}
+
+    public override void Draw()
+    {
+        // Step 2: Raylib draw calls.
+        // Render transcript + choices buttons.
     }
 }

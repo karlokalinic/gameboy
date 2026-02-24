@@ -43,6 +43,8 @@ public sealed class DesktopScene : GameSceneBase
     public override void Update(float dt)
     {
         _windowManager.Update(dt);
+    public override void Update(float dt)
+    {
     }
 
     public override void Draw()
@@ -139,5 +141,17 @@ public sealed class DesktopScene : GameSceneBase
         Raylib.DrawRectangle(0, 0, Raylib.GetScreenWidth(), Raylib.GetScreenHeight(), new Color(15, 22, 31, 255));
         Raylib.DrawRectangle(0, 48, Raylib.GetScreenWidth(), 2, new Color(57, 76, 101, 255));
         Raylib.DrawText("SignalDesk Runtime Desktop", 208, 24, 18, Color.LightGray);
+    }
+        Raylib.DrawRectangle(40, 60, 1520, 800, new Color(25, 32, 44, 255));
+        Raylib.DrawRectangleLines(40, 60, 1520, 800, new Color(90, 110, 132, 255));
+
+        Raylib.DrawText("Desktop Runtime (Phase B)", 62, 82, 36, Color.RayWhite);
+        Raylib.DrawText($"Archetype: {_archetype}", 64, 130, 24, Color.LightGray);
+        Raylib.DrawText("Next phases wire scenario runtime, draggable panels, checks, and saves.", 64, 168, 22, Color.Gray);
+
+        if (UiElements.Button(new Rectangle(64, 760, 210, 46), "Back to Menu"))
+        {
+            Host.SceneManager.Replace(new MainMenuScene(Host));
+        }
     }
 }
