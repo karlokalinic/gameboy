@@ -26,6 +26,8 @@
 - Extended scenario DTO contract:
   - `ScenarioCheck.Modifiers` with `ScenarioModifierRule`
 
+- Stability pass: desktop scenario loading now fails gracefully (no hard crash), runtime writes concise logs to `logs/runtime.log`, and fatal exceptions keep console open with `Press ENTER to close` for easier debugging.
+
 ## Remaining for Step 2 completion
 
 - Effect pipeline execution (`delta_stat`, `set_flag`, `delta_relationship`, inventory ops, etc.).

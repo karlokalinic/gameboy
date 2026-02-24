@@ -16,6 +16,7 @@ public sealed class GameHost
     public string SavesPath { get; private set; } = string.Empty;
     public string LogsPath { get; private set; } = string.Empty;
     public string ScenarioDataPath { get; private set; } = string.Empty;
+    public string RuntimeLogPath { get; private set; } = string.Empty;
 
     public void Initialize()
     {
@@ -32,43 +33,83 @@ public sealed class GameHost
         Directory.CreateDirectory(LogsPath);
         Directory.CreateDirectory(ScenarioDataPath);
 
+        RuntimeLogPath = Path.Combine(LogsPath, "runtime.log");
+        LogInfo($"Root resolved: {RootPath}");
+
         Raylib.SetConfigFlags(ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint);
         Raylib.InitWindow(WindowWidth, WindowHeight, "SignalDesk - Step 2 Runtime Bootstrap");
         Raylib.SetTargetFPS(60);
 
         SceneManager.Replace(new BootScene(this));
+        LogInfo("Scene transition: boot");
     }
 
     public void Run()
     {
-        while (!Raylib.WindowShouldClose())
+        try
         {
-            var dt = Raylib.GetFrameTime();
-            SceneManager.Update(dt);
+            while (!Raylib.WindowShouldClose())
+            {
+                var dt = Raylib.GetFrameTime();
+                SceneManager.Update(dt);
 
-            Raylib.BeginDrawing();
-            Raylib.ClearBackground(new Color(18, 20, 27, 255));
-            SceneManager.Draw();
-            DrawGlobalOverlay();
-            Raylib.EndDrawing();
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(new Color(18, 20, 27, 255));
+                SceneManager.Draw();
+                DrawGlobalOverlay();
+                Raylib.EndDrawing();
+            }
         }
+        catch (Exception ex)
+        {
+            LogError("Unhandled exception in main loop", ex);
+            throw;
+        }
+        finally
+        {
+            SceneManager.Clear();
+            Raylib.CloseWindow();
+        }
+    }
 
-        SceneManager.Clear();
-        Raylib.CloseWindow();
+    public void LogInfo(string message) => WriteLog("INFO", message);
+
+    public void LogError(string message, Exception ex) => WriteLog("ERROR", $"{message}: {ex}");
+
+    private void WriteLog(string level, string message)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(RuntimeLogPath))
+            {
+                return;
+            }
+
+            var line = $"{DateTimeOffset.UtcNow:O} [{level}] {message}{Environment.NewLine}";
+            File.AppendAllText(RuntimeLogPath, line);
+        }
+        catch
+        {
+            // logging must never crash runtime
+        }
     }
 
     private static string ResolveRootPath()
     {
-        var cwd = Directory.GetCurrentDirectory();
-        var candidate = Path.GetFullPath(Path.Combine(cwd, "..", "..", "..", ".."));
-
-        if (Directory.Exists(Path.Combine(candidate, "docs")) &&
-            Directory.Exists(Path.Combine(candidate, "src")))
+        var current = new DirectoryInfo(Directory.GetCurrentDirectory());
+        while (current is not null)
         {
-            return candidate;
+            var docs = Path.Combine(current.FullName, "docs");
+            var src = Path.Combine(current.FullName, "src");
+            if (Directory.Exists(docs) && Directory.Exists(src))
+            {
+                return current.FullName;
+            }
+
+            current = current.Parent;
         }
 
-        return cwd;
+        return Directory.GetCurrentDirectory();
     }
 
     private void DrawGlobalOverlay()

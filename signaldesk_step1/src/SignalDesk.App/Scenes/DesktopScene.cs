@@ -32,6 +32,8 @@ public sealed class DesktopScene : GameSceneBase
 
     public override void Enter()
     {
+        Host.LogInfo("Scene transition: desktop");
+
         _gameState.Player.Archetype = _archetype;
         _gameState.Player.SignatureSkill = "logic";
         _gameState.Player.Skills["authority"] = 3;
@@ -50,8 +52,23 @@ public sealed class DesktopScene : GameSceneBase
         });
 
         BuildWindows();
-        LoadScenario();
-        RefreshPanels("Desktop initialized");
+
+        try
+        {
+            LoadScenario();
+            RefreshPanels("Desktop initialized");
+        }
+        catch (Exception ex)
+        {
+            Host.LogError("Scenario load failed", ex);
+            _gameState.Session.Transcript.Add(new TranscriptEntry
+            {
+                Source = "system",
+                Channel = "system",
+                Text = $"Scenario load error: {ex.Message}"
+            });
+            RefreshPanels("Scenario load failed");
+        }
     }
 
     public override void Update(float dt)
@@ -92,27 +109,48 @@ public sealed class DesktopScene : GameSceneBase
 
     private void LoadScenario()
     {
-        var scenariosPath = Path.Combine(Host.DataPath, "scenarios");
+        var scenariosPath = Host.ScenarioDataPath;
         Directory.CreateDirectory(scenariosPath);
 
         _scenarioPath = Path.Combine(scenariosPath, "scenario_delta_warehouse_v1.json");
+
         if (!File.Exists(_scenarioPath))
         {
-            var fallbackPath = Path.Combine(Host.RootPath, "examples", "scenario_delta_warehouse_v1.json");
-            if (File.Exists(fallbackPath))
+            var fallbackPath = ResolveExampleScenarioPath();
+            if (fallbackPath is null)
             {
-                File.Copy(fallbackPath, _scenarioPath, overwrite: true);
+                throw new FileNotFoundException("Could not locate example scenario file.", _scenarioPath);
             }
+
+            File.Copy(fallbackPath, _scenarioPath, overwrite: true);
+            Host.LogInfo($"Scenario copied from example source: {fallbackPath}");
         }
 
         var scenario = _scenarioRepository.LoadFromFile(_scenarioPath);
+        Host.LogInfo($"Scenario loaded: {_scenarioPath}");
         _scenarioRuntime.Start(_gameState, scenario);
+    }
+
+    private string? ResolveExampleScenarioPath()
+    {
+        var candidates = new[]
+        {
+            Path.Combine(Host.RootPath, "examples", "scenario_delta_warehouse_v1.json"),
+            Path.Combine(Host.RootPath, "signaldesk_step1", "examples", "scenario_delta_warehouse_v1.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "examples", "scenario_delta_warehouse_v1.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "examples", "scenario_delta_warehouse_v1.json")
+        };
+
+        return candidates
+            .Select(Path.GetFullPath)
+            .FirstOrDefault(File.Exists);
     }
 
     private void OnChoiceSelected(string choiceId)
     {
         var result = _scenarioRuntime.SelectChoice(_gameState, choiceId);
         var message = result.Ok ? $"Choice applied: {choiceId}" : $"Choice blocked: {result.ErrorMessage}";
+        Host.LogInfo(message);
         RefreshPanels(message);
     }
 
