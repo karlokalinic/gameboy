@@ -39,5 +39,10 @@ public sealed class TaskbarPanel : WindowPanel
                 break;
             }
         }
+    public TaskbarPanel() : base("taskbar", "Taskbar") {}
+
+    public override void Draw()
+    {
+        // Step 2: docked bottom bar showing window buttons and slot info
     }
 }

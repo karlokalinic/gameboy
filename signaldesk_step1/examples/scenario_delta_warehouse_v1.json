@@ -7,6 +7,7 @@
     "handler_iris",
     "mila_runner"
   ],
+  "contacts": ["handler_iris", "mila_runner"],
   "startNode": "intro_msg",
   "nodes": [
     {
@@ -26,6 +27,8 @@
           "minSkill": 2,
           "text": "If this is a probe, someone wants to test response latency before trying something larger."
         }
+        { "channel": "analytical", "minSkill": 3, "text": "Ninety-three seconds is too neat. Someone timed a blind spot, not a random outage." },
+        { "channel": "threat", "minSkill": 2, "text": "If this is a probe, someone wants to test response latency before trying something larger." }
       ],
       "choices": [
         {
@@ -44,6 +47,8 @@
               "key": "found_loop_patch",
               "value": true
             }
+            { "op": "append_log", "args": { "kind": "evidence", "text": "Maintenance log: camera loop patch deployed 03:12 by unknown badge." } },
+            { "op": "set_flag", "key": "found_loop_patch", "value": true }
           ],
           "next": "contact_mila"
         },
@@ -71,6 +76,7 @@
                 "reason": "Signal noise during rain"
               }
             ]
+            }
           }
         }
       ]
@@ -92,6 +98,7 @@
               "value": true
             }
           ],
+          "conditions": [ { "op": "flag_equals", "key": "found_loop_patch", "value": true } ],
           "check": {
             "skill": "suggestion",
             "difficulty": 9,
@@ -107,6 +114,7 @@
                 "reason": "Harder to read tone in storm conditions"
               }
             ]
+            }
           }
         },
         {
@@ -119,6 +127,7 @@
               "value": 4
             }
           ],
+          "effects": [ { "op": "delta_relationship", "key": "mila_runner", "value": 4 } ],
           "next": "audit_window"
         }
       ]
@@ -142,6 +151,9 @@
           "key": "courier_network_alerted",
           "value": true
         }
+        { "op": "delta_relationship", "key": "mila_runner", "value": -8 },
+        { "op": "add_heat", "value": 12 },
+        { "op": "set_flag", "key": "courier_network_alerted", "value": true }
       ],
       "next": "audit_window"
     },
@@ -162,6 +174,8 @@
             "text": "Timing data sale likely involved internal security desk."
           }
         }
+        { "op": "set_flag", "key": "security_leak_confirmed", "value": true },
+        { "op": "append_log", "args": { "kind": "lead", "text": "Timing data sale likely involved internal security desk." } }
       ],
       "next": "audit_window"
     },
@@ -187,6 +201,9 @@
             "text": "Badge fragment: S-17 / route code NORTH-RAIL-4."
           }
         }
+        { "op": "set_flag", "key": "got_badge_fragment", "value": true },
+        { "op": "delta_relationship", "key": "mila_runner", "value": 7 },
+        { "op": "append_log", "args": { "kind": "evidence", "text": "Badge fragment: S-17 / route code NORTH-RAIL-4." } }
       ],
       "next": "audit_window"
     },
@@ -216,6 +233,9 @@
               "key": "handler_iris",
               "value": 3
             }
+            { "op": "set_flag", "key": "chose_coverup", "value": true },
+            { "op": "delta_stat", "key": "sanity", "value": -4 },
+            { "op": "delta_relationship", "key": "handler_iris", "value": 3 }
           ],
           "next": "ending_coverup"
         },
@@ -229,6 +249,7 @@
               "value": true
             }
           ],
+          "conditions": [ { "op": "flag_equals", "key": "got_badge_fragment", "value": true } ],
           "check": {
             "skill": "reaction_speed",
             "difficulty": 11,
@@ -261,6 +282,10 @@
               "op": "unlock_thought",
               "key": "procedural_purity"
             }
+            { "op": "set_flag", "key": "truth_reported", "value": true },
+            { "op": "delta_stat", "key": "morale", "value": 2 },
+            { "op": "delta_relationship", "key": "handler_iris", "value": -6 },
+            { "op": "unlock_thought", "key": "procedural_purity" }
           ],
           "next": "ending_truth"
         }
@@ -308,5 +333,15 @@
       "label": "The Honest Cut",
       "summary": "Truth triggers internal purge. You keep conscience, lose protection."
     }
+    { "id": "ending_coverup", "type": "ending", "endingId": "coverup_stability" },
+    { "id": "ending_clean_win", "type": "ending", "endingId": "silent_intercept" },
+    { "id": "ending_messy_win", "type": "ending", "endingId": "intercept_exposed" },
+    { "id": "ending_truth", "type": "ending", "endingId": "audit_purge" }
+  ],
+  "endings": [
+    { "id": "coverup_stability", "label": "Stability Through Rot", "summary": "Audit signs off. Leak survives. You buy quiet with future damage." },
+    { "id": "silent_intercept", "label": "Silent Intercept", "summary": "Leak is contained before audit notices. Someone powerful now knows you are competent." },
+    { "id": "intercept_exposed", "label": "Messy Win", "summary": "You stop the transfer, but heat spikes and networks remember your methods." },
+    { "id": "audit_purge", "label": "The Honest Cut", "summary": "Truth triggers internal purge. You keep conscience, lose protection." }
   ]
 }

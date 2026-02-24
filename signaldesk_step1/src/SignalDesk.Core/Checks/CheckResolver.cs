@@ -10,6 +10,7 @@ public interface ICheckResolver
 public sealed class CheckResolver : ICheckResolver
 {
     private readonly Random _random = new(); // TODO(step4): replace with seeded IRandomService
+    private readonly Random _random = new(); // Step 2: replace with seeded IRandomService
 
     public CheckResult Resolve(GameState state, CheckRequest request)
     {
@@ -18,6 +19,7 @@ public sealed class CheckResolver : ICheckResolver
         var skillValue = state.Player.Skills.TryGetValue(request.SkillId, out var v) ? v : 0;
         var breakdown = BuildBreakdown(state, request);
         var modifier = breakdown.Sum(x => x.Value);
+        var modifier = 0; // TODO: transcript analyzer / inventory / thought cabinet / relationships / district state
         var total = dieA + dieB + skillValue + modifier;
         var delta = total - request.Difficulty;
 
@@ -133,5 +135,8 @@ public sealed class CheckResolver : ICheckResolver
                 modifiers.Add(new CheckModifier { Source = "rule:weather", Value = rule.Bonus, Reason = rule.Reason });
             }
         }
+    }
+            Band = band
+        };
     }
 }

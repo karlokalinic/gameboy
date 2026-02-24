@@ -13,6 +13,7 @@ public sealed class WindowManager
         _windows.Add(panel);
         BringToFront(panel.Id);
     }
+    public void Add(WindowPanel panel) => _windows.Add(panel);
 
     public void BringToFront(string id)
     {
@@ -31,6 +32,11 @@ public sealed class WindowManager
             window.IsFocused = false;
         }
 
+        if (idx < 0) return;
+        var panel = _windows[idx];
+        _windows.RemoveAt(idx);
+        _windows.Add(panel);
+        foreach (var w in _windows) w.IsFocused = false;
         panel.IsFocused = true;
     }
 
@@ -38,6 +44,8 @@ public sealed class WindowManager
     {
         var panel = _windows.FirstOrDefault(w => w.Id == id);
         panel?.ToggleMinimized();
+        if (panel is null) return;
+        panel.IsMinimized = !panel.IsMinimized;
     }
 
     public void Update(float dt)
@@ -62,6 +70,8 @@ public sealed class WindowManager
             window.Update(dt);
             window.HandleInteraction(mouse);
         }
+        foreach (var window in _windows.Where(w => w.IsVisible && !w.IsMinimized))
+            window.Update(dt);
     }
 
     public void Draw()
@@ -70,5 +80,7 @@ public sealed class WindowManager
         {
             window.Draw();
         }
+        foreach (var window in _windows.Where(w => w.IsVisible && !w.IsMinimized))
+            window.Draw();
     }
 }

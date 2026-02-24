@@ -51,6 +51,20 @@
       "items": {
         "$ref": "#/$defs/node"
       }
+  "required": ["id", "version", "title", "startNode", "nodes"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "startNode": { "type": "string" },
+    "district": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "contacts": { "type": "array", "items": { "type": "string" } },
+    "variables": { "type": "object", "additionalProperties": true },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
     },
     "endings": {
       "type": "array",
@@ -76,6 +90,12 @@
               "$ref": "#/$defs/effect"
             }
           }
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "summary": { "type": "string" },
+          "effects": { "type": "array", "items": { "$ref": "#/$defs/effect" } }
         },
         "additionalProperties": false
       }
@@ -116,6 +136,13 @@
         "text": {
           "type": "string"
         },
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "enum": ["message", "event", "check", "travel", "ending"] },
+        "speaker": { "type": "string" },
+        "channel": { "type": "string", "enum": ["inbox", "system", "field", "internal"] },
+        "text": { "type": "string" },
         "overlays": {
           "type": "array",
           "items": {
@@ -142,28 +169,20 @@
                   "$ref": "#/$defs/condition"
                 }
               }
+            "required": ["channel", "minSkill", "text"],
+            "properties": {
+              "channel": { "type": "string" },
+              "minSkill": { "type": "integer", "minimum": 0 },
+              "text": { "type": "string" },
+              "conditions": { "type": "array", "items": { "$ref": "#/$defs/condition" } }
             },
             "additionalProperties": false
           }
         },
-        "choices": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/choice"
-          }
-        },
-        "effects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/effect"
-          }
-        },
-        "next": {
-          "type": "string"
-        },
-        "endingId": {
-          "type": "string"
-        }
+        "choices": { "type": "array", "items": { "$ref": "#/$defs/choice" } },
+        "effects": { "type": "array", "items": { "$ref": "#/$defs/effect" } },
+        "next": { "type": "string" },
+        "endingId": { "type": "string" }
       },
       "additionalProperties": false
     },
@@ -240,6 +259,29 @@
               "items": {
                 "$ref": "#/$defs/modifierRule"
               }
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "next": { "type": "string" },
+        "conditions": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+        "effects": { "type": "array", "items": { "$ref": "#/$defs/effect" } },
+        "check": {
+          "type": "object",
+          "required": ["skill", "difficulty"],
+          "properties": {
+            "skill": { "type": "string" },
+            "difficulty": { "type": "integer" },
+            "on": {
+              "type": "object",
+              "properties": {
+                "criticalFail": { "type": "string" },
+                "fail": { "type": "string" },
+                "partial": { "type": "string" },
+                "success": { "type": "string" },
+                "strongSuccess": { "type": "string" }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -264,6 +306,12 @@
           "type": "object",
           "additionalProperties": true
         }
+      "required": ["op"],
+      "properties": {
+        "op": { "type": "string" },
+        "key": { "type": "string" },
+        "value": {},
+        "args": { "type": "object", "additionalProperties": true }
       },
       "additionalProperties": false
     },
@@ -310,6 +358,12 @@
         "reason": {
           "type": "string"
         }
+      "required": ["op"],
+      "properties": {
+        "op": { "type": "string" },
+        "key": { "type": "string" },
+        "value": {},
+        "args": { "type": "object", "additionalProperties": true }
       },
       "additionalProperties": false
     }
