@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "districts": [
+    {
+      "id": "dock_delta",
+      "name": "Dock Delta",
+      "description": "Cold storage, bonded yards, camera blind spots sold by the minute.",
+      "neighbors": ["old_exchange", "north_rail"],
+      "unlockConditions": [],
+      "state": { "heat": 15, "surveillance": 40, "unrest": 10 },
+      "availableScenarios": ["delta_warehouse_sweep"]
+    },
+    {
+      "id": "old_exchange",
+      "name": "Old Exchange",
+      "description": "Administrative shells, dead terminals, live blackmail.",
+      "neighbors": ["dock_delta"],
+      "unlockConditions": [
+        { "op": "flag_equals", "key": "security_leak_confirmed", "value": true }
+      ],
+      "state": { "heat": 5, "surveillance": 70, "unrest": 25 },
+      "availableScenarios": ["embassy_leak_midnight"]
+    }
+  ]
+}

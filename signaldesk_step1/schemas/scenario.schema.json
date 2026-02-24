@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "signaldesk/scenario.schema.json",
+  "title": "SignalDesk Scenario",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "title",
+    "startNode",
+    "nodes"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "startNode": {
+      "type": "string"
+    },
+    "district": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "contacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "variables": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "endings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/effect"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "message",
+            "event",
+            "check",
+            "travel",
+            "ending"
+          ]
+        },
+        "speaker": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "inbox",
+            "system",
+            "field",
+            "internal"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "overlays": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "channel",
+              "minSkill",
+              "text"
+            ],
+            "properties": {
+              "channel": {
+                "type": "string"
+              },
+              "minSkill": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "text": {
+                "type": "string"
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/condition"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/choice"
+          }
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/effect"
+          }
+        },
+        "next": {
+          "type": "string"
+        },
+        "endingId": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "choice": {
+      "type": "object",
+      "required": [
+        "id",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "next": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/condition"
+          }
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/effect"
+          }
+        },
+        "check": {
+          "type": "object",
+          "required": [
+            "skill",
+            "difficulty"
+          ],
+          "properties": {
+            "skill": {
+              "type": "string"
+            },
+            "difficulty": {
+              "type": "integer"
+            },
+            "on": {
+              "type": "object",
+              "properties": {
+                "criticalFail": {
+                  "type": "string"
+                },
+                "fail": {
+                  "type": "string"
+                },
+                "partial": {
+                  "type": "string"
+                },
+                "success": {
+                  "type": "string"
+                },
+                "strongSuccess": {
+                  "type": "string"
+                },
+                "critical_fail": {
+                  "type": "string"
+                },
+                "strong_success": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "modifiers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/modifierRule"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "condition": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {},
+        "args": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "effect": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {},
+        "args": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "modifierRule": {
+      "type": "object",
+      "required": [
+        "type",
+        "bonus",
+        "reason"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "relationType": {
+          "type": "string"
+        },
+        "bonus": {
+          "type": "integer"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
