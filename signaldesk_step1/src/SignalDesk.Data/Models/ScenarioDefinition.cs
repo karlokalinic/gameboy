@@ -38,6 +38,16 @@ public sealed class ScenarioCheck
     public string Skill { get; set; } = string.Empty;
     public int Difficulty { get; set; }
     public Dictionary<string, string>? On { get; set; }
+    public List<ScenarioModifierRule>? Modifiers { get; set; }
+}
+
+public sealed class ScenarioModifierRule
+{
+    public string Type { get; set; } = string.Empty;
+    public string? Tag { get; set; }
+    public string? RelationType { get; set; }
+    public int Bonus { get; set; }
+    public string Reason { get; set; } = string.Empty;
 }
 
 public sealed class ScenarioCondition

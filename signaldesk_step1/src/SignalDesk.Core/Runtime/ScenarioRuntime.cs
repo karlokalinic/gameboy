@@ -1,3 +1,4 @@
+using SignalDesk.Core.Checks;
 using SignalDesk.Core.Models;
 using SignalDesk.Data.Models;
 
@@ -12,6 +13,18 @@ public interface IScenarioRuntime
 
 public sealed class ScenarioRuntime : IScenarioRuntime
 {
+    private readonly ICheckResolver _checkResolver;
+    private ScenarioDefinition? _scenario;
+
+    public ScenarioRuntime() : this(new CheckResolver())
+    {
+    }
+
+    public ScenarioRuntime(ICheckResolver checkResolver)
+    {
+        _checkResolver = checkResolver;
+    }
+
     private ScenarioDefinition? _scenario;
 
     public void Start(GameState state, ScenarioDefinition scenario)
@@ -49,6 +62,7 @@ public sealed class ScenarioRuntime : IScenarioRuntime
 
     public RuntimeResolutionResult SelectChoice(GameState state, string choiceId)
     {
+        // TODO(step3b): execute condition/effect pipelines around choices and nodes.
         // TODO(step3): implement full condition/effect/check resolution pipeline.
         if (_scenario is null)
         {
@@ -64,6 +78,35 @@ public sealed class ScenarioRuntime : IScenarioRuntime
 
         AddTranscript(state, "player", $"Choice selected: {choice.Label}");
 
+        string? nextNode = choice.Next;
+
+        if (choice.Check is not null)
+        {
+            var checkRequest = new CheckRequest
+            {
+                SkillId = choice.Check.Skill,
+                Difficulty = choice.Check.Difficulty,
+                Context = $"choice:{choice.Id}",
+                TargetId = node.Speaker,
+                Rules = choice.Check.Modifiers ?? Array.Empty<ScenarioModifierRule>()
+            };
+
+            var result = _checkResolver.Resolve(state, checkRequest);
+            LogCheck(state, checkRequest, result);
+            var key = ToOutcomeKey(result.Band);
+
+            if (choice.Check.On is null || !choice.Check.On.TryGetValue(key, out nextNode))
+            {
+                return RuntimeResolutionResult.Error($"No check branch configured for '{key}'");
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(nextNode))
+        {
+            return RuntimeResolutionResult.Error("Choice has no next target");
+        }
+
+        state.Session.CurrentNodeId = nextNode;
         if (choice.Check is not null)
         {
             AddTranscript(state, "system", $"(CHECK TODO) '{choice.Check.Skill}' vs DC {choice.Check.Difficulty}.");
@@ -79,6 +122,38 @@ public sealed class ScenarioRuntime : IScenarioRuntime
         AddNodeTranscript(state, state.Session.CurrentNodeId);
 
         return RuntimeResolutionResult.Success();
+    }
+
+    private static string ToOutcomeKey(CheckBand band) => band switch
+    {
+        CheckBand.CriticalFailure => "critical_fail",
+        CheckBand.Failure => "fail",
+        CheckBand.PartialSuccess => "partial",
+        CheckBand.Success => "success",
+        CheckBand.StrongSuccess => "strong_success",
+        _ => "fail"
+    };
+
+    private static void LogCheck(GameState state, CheckRequest request, CheckResult result)
+    {
+        state.Session.RollHistory.Add(new RollLogEntry
+        {
+            Skill = request.SkillId,
+            Difficulty = request.Difficulty,
+            DieA = result.DieA,
+            DieB = result.DieB,
+            SkillValue = result.SkillValue,
+            Modifier = result.Modifier,
+            Total = result.Total,
+            Band = result.Band.ToString(),
+            Context = request.Context
+        });
+
+        AddTranscript(state, "system", $"Check {request.SkillId} [{result.Band}] total={result.Total} vs DC {request.Difficulty}");
+        foreach (var mod in result.Breakdown)
+        {
+            AddTranscript(state, "system", $"  {mod.Value:+#;-#;0} {mod.Source} - {mod.Reason}");
+        }
     }
 
     private void AddNodeTranscript(GameState state, string nodeId)
@@ -151,6 +226,7 @@ public sealed class RuntimeView
             NodeType = node.Type,
             Text = node.Text,
             Choices = (node.Choices ?? new List<ScenarioChoice>())
+                .Select(c => new RuntimeChoiceView(c.Id, c.Check is null ? c.Label : $"{c.Label} [CHECK]"))
                 .Select(c => new RuntimeChoiceView(c.Id, c.Check is null ? c.Label : $"{c.Label} (CHECK TODO)"))
                 .Select(c => new RuntimeChoiceView(c.Id, c.Label))
                 .ToList()

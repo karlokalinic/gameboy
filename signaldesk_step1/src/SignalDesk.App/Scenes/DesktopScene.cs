@@ -34,6 +34,20 @@ public sealed class DesktopScene : GameSceneBase
     {
         _gameState.Player.Archetype = _archetype;
         _gameState.Player.SignatureSkill = "logic";
+        _gameState.Player.Skills["authority"] = 3;
+        _gameState.Player.Skills["logic"] = 4;
+        _gameState.Player.Skills["suggestion"] = 2;
+        _gameState.Player.Flags["clothing_tags"] = "formal,intimidating";
+        _gameState.World.GlobalFlags["weather"] = "rain";
+        _gameState.Relationships["mila_runner"] = new RelationshipState { Value = 18 };
+        _gameState.Relationships["handler_iris"] = new RelationshipState { Value = 35 };
+        _gameState.SocialGraph.Links.Add(new SocialLink
+        {
+            FromId = "mila_runner",
+            ToId = "handler_iris",
+            RelationType = RelationType.Friend,
+            Weight = 0.8f
+        });
 
         BuildWindows();
         LoadScenario();
@@ -132,6 +146,15 @@ public sealed class DesktopScene : GameSceneBase
             _debugPanel.ScenarioId = _gameState.Session.ScenarioId;
             _debugPanel.NodeId = view.NodeId;
             _debugPanel.ScenarioPath = _scenarioPath;
+            if (_gameState.Session.RollHistory.Count > 0)
+            {
+                var lastRoll = _gameState.Session.RollHistory[^1];
+                _debugPanel.LastMessage = $"{statusMessage} | Roll {lastRoll.Skill}={lastRoll.Total} ({lastRoll.Band})";
+            }
+            else
+            {
+                _debugPanel.LastMessage = statusMessage;
+            }
             _debugPanel.LastMessage = statusMessage;
         }
     }

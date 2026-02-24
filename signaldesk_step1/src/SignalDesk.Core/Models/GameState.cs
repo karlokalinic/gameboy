@@ -8,4 +8,5 @@ public sealed class GameState
     public Dictionary<string, RelationshipState> Relationships { get; set; } = new();
     public MemoryState Memory { get; set; } = new();
     public ThoughtCabinetState ThoughtCabinet { get; set; } = new();
+    public SocialGraph SocialGraph { get; set; } = new();
 }
