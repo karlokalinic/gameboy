@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "signaldesk/contacts.schema.json",
+  "title": "SignalDesk Contacts",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "displayName"],
+    "properties": {
+      "id": { "type": "string" },
+      "displayName": { "type": "string" },
+      "handle": { "type": "string" },
+      "faction": { "type": "string" },
+      "tags": { "type": "array", "items": { "type": "string" } },
+      "bio": { "type": "string" },
+      "channels": { "type": "array", "items": { "type": "string" } },
+      "defaultRelationship": {
+        "type": "object",
+        "properties": {
+          "value": { "type": "number" },
+          "trust": { "type": "number" },
+          "fear": { "type": "number" },
+          "respect": { "type": "number" }
+        },
+        "additionalProperties": false
+      },
+      "hiddenTraits": { "type": "array", "items": { "type": "string" } }
+    },
+    "additionalProperties": false
+  }
+}
