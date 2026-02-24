@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace SignalDesk.Tests;
 
 public sealed class ScenarioRepositoryTests
